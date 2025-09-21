@@ -170,7 +170,7 @@ class PurchaseController extends Controller
                 })
                 ->removeColumn('id')
                 ->editColumn('ref_no', function ($row) {
-                    return ! empty($row->return_exists) ? e($row->ref_no).' <small class="label bg-red label-round no-print" title="'.__('lang_v1.some_qty_returned').'"><i class="fas fa-undo"></i></small>' : e($row->ref_no);
+                    return ! empty($row->return_exists) ? $row->ref_no.' <small class="label bg-red label-round no-print" title="'.__('lang_v1.some_qty_returned').'"><i class="fas fa-undo"></i></small>' : $row->ref_no;
                 })
                 ->editColumn(
                     'final_total',
@@ -1326,16 +1326,6 @@ class PurchaseController extends Controller
                                     ->first();
             $payment_methods = $this->productUtil->payment_types(null, false, $business_id);
 
-            // new line add from show function to show purchase text
-            $purchase_taxes = [];
-            if (! empty($purchase->tax)) {
-                if ($purchase->tax->is_tax_group) {
-                    $purchase_taxes = $this->transactionUtil->sumGroupTaxDetails($this->transactionUtil->groupTaxDetails($purchase->tax, $purchase->tax_amount));
-                } else {
-                    $purchase_taxes[$purchase->tax->name] = $purchase->tax_amount;
-                }
-            }
-
 
             foreach ($purchase->purchase_lines as $key => $value) {
                 if (! empty($value->sub_unit_id)) {
@@ -1359,7 +1349,7 @@ class PurchaseController extends Controller
             }
 
             $output = ['success' => 1, 'receipt' => [], 'print_title' => $purchase->ref_no];
-            $output['receipt']['html_content'] = view('purchase.partials.show_details', compact('taxes', 'purchase', 'payment_methods', 'purchase_order_nos', 'purchase_order_dates', 'purchase_taxes'))->render();
+            $output['receipt']['html_content'] = view('purchase.partials.show_details', compact('taxes', 'purchase', 'payment_methods', 'purchase_order_nos', 'purchase_order_dates'))->render();
         } catch (\Exception $e) {
             \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
 

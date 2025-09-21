@@ -233,6 +233,9 @@
 						@lang('sale.price_inc_tax')
 					</th>
 					<th class="text-center tw-text-sm md:!tw-text-base tw-font-bold col-md-2">
+						@lang('Discount')
+					</th>
+					<th class="text-center tw-text-sm md:!tw-text-base tw-font-bold col-md-2">
 						@lang('sale.subtotal')
 					</th>
 					<th class="text-center"><i class="fas fa-times tw-text-base" aria-hidden="true"></i></th>

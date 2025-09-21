@@ -1,6 +1,5 @@
 var global_brand_id = null;
 var global_p_category_id = null;
-var global_is_clear_local_storage = false;
 $(document).ready(function() {
     customer_set = false;
     //Prevent enter key function except texarea
@@ -150,8 +149,6 @@ $(document).ready(function() {
         // }
         if ($('.contact_due_text').length) {
             get_contact_due(data.id);
-            // store on customer change
-            saveFormDataToLocalStorage();
         }
     });
 
@@ -207,9 +204,7 @@ $(document).ready(function() {
                         }
                     } else if (ui.content.length == 0) {
                         toastr.error(LANG.no_products_found);
-                        if (!$('#__is_mobile').length) {
-                            $('input#search_product').select();
-                        }
+                        $('input#search_product').select();
                     }
                 },
                 focus: function(event, ui) {
@@ -229,8 +224,8 @@ $(document).ready(function() {
                     }
 
                     var is_draft=false;
-                    if($('#status') && ($('#status').val()=='quotation' || 
-                    $('#status').val()=='draft')) {
+                    if($('input#status') && ($('input#status').val()=='quotation' || 
+                    $('input#status').val()=='draft')) {
                         var is_draft=true;
                     }
 
@@ -256,9 +251,8 @@ $(document).ready(function() {
                     for_so = true;
                 }
                 var is_draft=false;
-                
-                if($('#status') && ($('#status').val()=='quotation' || 
-                $('#status').val()=='draft')) {
+                if($('input#status') && ($('input#status').val()=='quotation' || 
+                $('input#status').val()=='draft')) {
                     var is_draft=true;
                 }
 
@@ -306,10 +300,9 @@ $(document).ready(function() {
 
     //Update line total and check for quantity not greater than max quantity
     $('table#pos_table tbody').on('change', 'input.pos_quantity', function() {
-        // comment line becouse it validate form at increment and decrement item
-        // if (sell_form_validator) {
-        //     sell_form.valid();
-        // }
+        if (sell_form_validator) {
+            sell_form.valid();
+        }
         if (pos_form_validator) {
             pos_form_validator.element($(this));
         }
@@ -610,7 +603,6 @@ $(document).ready(function() {
                 return false;
             }
         }
-
         $('#modal_payment').modal('show');
     });
 
@@ -624,6 +616,29 @@ $(document).ready(function() {
             $(this).find('#method_0').change();
         }
     });
+
+
+
+    //resources->views->sale_pos->partials->pos_form_actions.blade.php
+
+                // @if(!$is_mobile)
+                //     <div class="bg-navy pos-total text-white">
+                // {{--    <span class="text">@lang('sale.total_payable')</span>--}}
+    //                     <span class="text">Total</span>
+    //                     <input type="hidden" name="final_total"
+    //                            id="final_total_input" value=0>
+    //                     <span id="total_payable" class="number">0</span>
+    //                 </div>
+    //             @endif
+
+    //             @if(!$is_mobile)
+    //                 <div class="bg-primary pos-total text-white">
+    //                     <span class="text">@lang('sale.total_payable')</span>
+    //                     <input class="text-black" type="text" name="total_payable_amount" id="total_payable_amount" value=0 style="height: 30px;">
+    //                     <button type="button" class="btn btn-success btn-flat btn-sm" id="posEditPayableAmountUpdate">@lang('messages.update')</button>
+    //                 </div>
+    //             @endif
+
 
     //Finalize without showing payment options
     $('button.pos-express-finalize').click(function() {
@@ -737,6 +752,7 @@ $(document).ready(function() {
             success: function(result) {
                 if (result) {
                     var appended = $('#payment_rows_div').append(result);
+                    var appendedMultipaySide = $('#payment_rows_div-multipay_side').append(result);
 
                     var total_payable = __read_number($('input#final_total_input'));
                     var total_paying = __read_number($('input#total_paying_input'));
@@ -860,6 +876,7 @@ $(document).ready(function() {
     });
 
     $(document).on('change', '.payment-amount', function() {
+        console.log('change payment amount');
         calculate_balance_due();
     });
 
@@ -870,6 +887,62 @@ $(document).ready(function() {
         if (!$("#discount_amount_modal").valid()) {
             return false;
         }
+        //Close modal
+        $('div#posEditDiscountModal').modal('hide');
+
+        //Update values
+        $('input#discount_type').val($('select#discount_type_modal').val());
+        __write_number($('input#discount_amount'), __read_number($('input#discount_amount_modal')));
+
+        if ($('#reward_point_enabled').length) {
+            var reward_validation = isValidatRewardPoint();
+            if (!reward_validation['is_valid']) {
+                toastr.error(reward_validation['msg']);
+                $('#rp_redeemed_modal').val(0);
+                $('#rp_redeemed_modal').change();
+            }
+            updateRedeemedAmount();
+        }
+
+        pos_total_row();
+    });
+    
+    $('#discount_amount_modal').on('focusout', function() {
+
+        var discount_type_element = $('select#discount_type_modal');
+        var discount_element = $('input#discount_amount_modal');
+        var max_value = parseFloat(discount_element.data('max-discount'));
+
+        if (discount_type_element.val() == 'fixed') {
+            var subtotal = get_subtotal();
+            console.log({subtotal});
+            //get max discount amount
+            max_value = __calculate_amount('percentage', max_value, subtotal)
+        }
+
+        discount_element.rules("remove", "max-value");
+        discount_element.rules('add', {
+            'max-value': max_value,
+            messages: {
+                'max-value': discount_element.data('max-discount-error_msg'),
+            },
+        });
+    })
+
+
+
+    $('#discount_amount_modal, #discount_type_modal').on('change', function() {
+        console.log('#discount_amount_modal, #discount_type_modal');
+        console.log($("#discount_amount_modal").val());
+        console.log($("#discount_amount_modal").rules());
+        console.log('Changing discount amount');
+
+        //if discount amount is not valid return false
+        if (!$("#discount_amount_modal").valid()) {
+            console.log('Discount amount is not valid');
+            return false;
+        }
+        console.log('Discount amount is valid');
         //Close modal
         $('div#posEditDiscountModal').modal('hide');
 
@@ -974,97 +1047,60 @@ $(document).ready(function() {
                                 return $('#contact_id').val();
                             },
                             hidden_id: function() {
-                                return $('#hidden_id').val() || '';
+                                if ($('#hidden_id').length) {
+                                    return $('#hidden_id').val();
+                                } else {
+                                    return '';
+                                }
                             },
                         },
                     },
                 },
-                // tax_number remote validation removed - now handled with sweet alert
             },
             messages: {
                 contact_id: {
-                    required: LANG.contact_id_required,
                     remote: LANG.contact_id_already_exists,
                 },
             },
             submitHandler: function(form) {
-                checkTaxNumberAndSubmitQuick(form);
-            },
-        });
-
-    function checkTaxNumberAndSubmitQuick(form) {
-        // Check if tax_number field exists and has a value
-        if ($('#tax_number').length && $('#tax_number').val().trim() !== '') {
-            $.ajax({
-                method: 'POST',
-                url: base_path + '/contacts/check-tax-number',
-                dataType: 'json',
-                data: {
-                    contact_id: $('#hidden_id').val(),
-                    tax_number: $('#tax_number').val(),
-                },
-                success: function(result) {
-                    if (result.is_tax_number_exists == true) {
-                        swal({
-                            title: LANG.sure,
-                            text: result.msg,
-                            icon: 'warning',
-                            buttons: true,
-                            dangerMode: true,
-                        }).then(willContinue => {
-                            if (willContinue) {
-                                checkMobileAndSubmitQuick(form);
-                            } else {
-                                $('#tax_number').select();
-                            }
-                        });
-                    } else {
-                        checkMobileAndSubmitQuick(form);
-                    }
-                },
-            });
-        } else {
-            // If no tax number, proceed to mobile check
-            checkMobileAndSubmitQuick(form);
-        }
-    }
-
-    function checkMobileAndSubmitQuick(form) {
-        $.ajax({
-            method: 'POST',
-            url: base_path + '/check-mobile',
-            dataType: 'json',
-            data: {
-                contact_id: function() {
-                    return $('#hidden_id').val();
-                },
-                mobile_number: function() {
-                    return $('#mobile').val();
-                },
-            },
-            success: function(result) {
-                if (result.is_mobile_exists == true) {
-                    swal({
-                        title: LANG.sure,
-                        text: result.msg,
-                        icon: 'warning',
-                        buttons: true,
-                        dangerMode: true,
-                    }).then(willContinue => {
-                        if (willContinue) {
-                            submitQuickContactForm(form);
+                $.ajax({
+                    method: 'POST',
+                    url: base_path + '/check-mobile',
+                    dataType: 'json',
+                    data: {
+                        contact_id: function() {
+                            return $('#hidden_id').val();
+                        },
+                        mobile_number: function() {
+                            return $('#mobile').val();
+                        },
+                    },
+                    beforeSend: function(xhr) {
+                        __disable_submit_button($(form).find('button[type="submit"]'));
+                    },
+                    success: function(result) {
+                        if (result.is_mobile_exists == true) {
+                            swal({
+                                title: LANG.sure,
+                                text: result.msg,
+                                icon: 'warning',
+                                buttons: true,
+                                dangerMode: true,
+                            }).then(willContinue => {
+                                if (willContinue) {
+                                    submitQuickContactForm(form);
+                                } else {
+                                    $('#mobile').select();
+                                }
+                            });
+                            
                         } else {
-                            $('#mobile').select();
+                            submitQuickContactForm(form);
                         }
-                    });
-                    
-                } else {
-                    submitQuickContactForm(form);
-                }
+                    },
+                });
             },
         });
-    }
-
     $('.contact_modal').on('hidden.bs.modal', function() {
         $('form#quick_add_contact')
             .find('button[type="submit"]')
@@ -1096,34 +1132,7 @@ $(document).ready(function() {
         sell_form = $('form#edit_sell_form');
         pos_total_row();
     }
-    sell_form_validator = sell_form.validate({
-        rules: {
-            invoice_no: {
-                remote: {
-                    url: '/sell/check-invoice-number',
-                    type: 'post',
-                    data: {
-                        invoice_no: function() {
-                            return $('#invoice_no').val();
-                        },
-                        transaction_id: function() {
-                            var id = '';
-                            var editForm = $('form#edit_sell_form');
-                            if (editForm.length) {
-                                id = editForm.data('transaction-id');
-                            }
-                            return id || '';
-                        }
-                    }
-                }
-            },
-        },
-        messages: {
-            invoice_no: {
-                remote: LANG.invoice_number_already_exists,
-            },
-        },
-    });
+    sell_form_validator = sell_form.validate();
 
     $('button#submit-sell, button#save-and-print').click(function(e) {
         //Check if product is present or not.
@@ -1347,9 +1356,18 @@ $(document).ready(function() {
         var key = e.which;
         if (key == 13) {
             // the enter key code
-            if (!$('#__is_mobile').length) {
-                $('#search_product').focus();
-            }
+            $('#search_product').focus();
+        }
+        if (key == 9) {
+            // $('input.payment-amount-side').focus();
+        }
+    });
+    $('input.pos_quantity').keydown(function(e) {
+        var key = e.which;
+        if (key == 9) {
+            // the tab key code
+            e.preventDefault();
+            // $('input.payment-amount-side').focus();
         }
     });
 
@@ -1702,11 +1720,9 @@ function pos_product_row(variation_id = null, purchase_line_id = null, weighing_
 
                     round_row_to_iraqi_dinnar($(this));
 
-                    if (!$('#__is_mobile').length) {
-                        $('input#search_product')
-                            .focus()
-                            .select();
-                    }
+                    $('input#search_product')
+                        .focus()
+                        .select();
                 }
         });
     }
@@ -1749,18 +1765,9 @@ function pos_product_row(variation_id = null, purchase_line_id = null, weighing_
         }
 
         var is_draft=false;
-        if($('#status') && ($('#status').val()=='quotation' || 
-        $('#status').val()=='draft')) {
+        if($('input#status') && ($('input#status').val()=='quotation' || 
+        $('input#status').val()=='draft')) {
             is_draft=true;
-        }
-
-        var is_serial_no = false;
-
-        if (
-            $('input[name="is_serial_no"]').length > 0 &&
-            $('input[name="is_serial_no"]').val() == 1
-        ) {
-            is_serial_no = true;
         }
         
         $.ajax({
@@ -1771,7 +1778,6 @@ function pos_product_row(variation_id = null, purchase_line_id = null, weighing_
                 product_row: product_row,
                 customer_id: customer_id,
                 is_direct_sell: is_direct_sell,
-                is_serial_no: is_serial_no,
                 price_group: price_group,
                 purchase_line_id: purchase_line_id,
                 weighing_scale_barcode: weighing_scale_barcode,
@@ -1814,11 +1820,9 @@ function pos_product_row(variation_id = null, purchase_line_id = null, weighing_
                     round_row_to_iraqi_dinnar(this_row);
                     __currency_convert_recursively(this_row);
 
-                    if (!$('#__is_mobile').length) {
-                        $('input#search_product')
-                            .focus()
-                            .select();
-                    }
+                    $('input#search_product')
+                        .focus()
+                        .select();
 
                     //Used in restaurant module
                     if (result.html_modifier) {
@@ -1833,11 +1837,9 @@ function pos_product_row(variation_id = null, purchase_line_id = null, weighing_
                     $(".pos_product_div").animate({ scrollTop: $('.pos_product_div').prop("scrollHeight")}, 1000);
                 } else {
                     toastr.error(result.msg);
-                    if (!$('#__is_mobile').length) {
-                        $('input#search_product')
-                            .focus()
-                            .select();
-                    }
+                    $('input#search_product')
+                        .focus()
+                        .select();
                 }
             },
         });
@@ -1872,6 +1874,7 @@ function pos_each_row(row_obj) {
 }
 
 function pos_total_row() {
+    
     var total_quantity = 0;
     var price_total = get_subtotal();
     $('table#pos_table tbody tr').each(function() {
@@ -1890,16 +1893,6 @@ function pos_total_row() {
     //$('span.unit_price_total').html(unit_price_total);
     $('span.price_total').html(__currency_trans_from_en(price_total, false));
     calculate_billing_details(price_total);
-
-    if (
-        $('input[name="is_serial_no"]').length > 0 &&
-        $('input[name="is_serial_no"]').val() == 1
-    ) {
-        update_serial_no();
-    }
-    // store on any update
-    saveFormDataToLocalStorage();
-
 }
 
 function get_subtotal() {
@@ -1921,6 +1914,7 @@ function get_subtotal() {
 }
 
 function calculate_billing_details(price_total) {
+    console.log('calculate_billing_details');
     var discount = pos_discount(price_total);
     if ($('#reward_point_enabled').length) {
         total_customer_reward = $('#rp_redeemed_amount').val();
@@ -1984,10 +1978,12 @@ function calculate_billing_details(price_total) {
     $('span#total_payable').text(__currency_trans_from_en(shown_total, false));
 
     $('span.total_payable_span').text(__currency_trans_from_en(total_payable_rounded, true));
+    // $('.payment-amount-side').val(total_payable_rounded)
 
     //Check if edit form then don't update price.
     if ($('form#edit_pos_sell_form').length == 0 && $('form#edit_sell_form').length == 0) {
         __write_number($('.payment-amount').first(), total_payable_rounded);
+        // __write_number($('.payment-amount-side').first(), total_payable_rounded);
     }
 
     $(document).trigger('invoice_total_calculated');
@@ -1996,11 +1992,12 @@ function calculate_billing_details(price_total) {
 }
 
 function pos_discount(total_amount) {
+    console.log('pos_discount');
     var calculation_type = $('#discount_type').val();
     var calculation_amount = __read_number($('#discount_amount'));
-
+    console.log({calculation_type, calculation_amount, total_amount});
     var discount = __calculate_amount(calculation_type, calculation_amount, total_amount);
-
+    console.log({discount});
     $('span#total_discount').text(__currency_trans_from_en(discount, false));
 
     return discount;
@@ -2024,6 +2021,7 @@ function pos_order_tax(price_total, discount) {
 }
 
 function calculate_balance_due() {
+    console.log('calculate_balance_due');
     var total_payable = __read_number($('#final_total_input'));
     var total_paying = 0;
     $('#payment_rows_div')
@@ -2046,7 +2044,6 @@ function calculate_balance_due() {
         __write_number($('input#change_return'), 0);
         $('span.change_return_span').text(__currency_trans_from_en(0, true));
         change_return = 0;
-        
     }
 
     if (change_return !== 0) {
@@ -2063,8 +2060,6 @@ function calculate_balance_due() {
 
     __highlight(bal_due * -1, $('span.balance_due'));
     __highlight(change_return * -1, $('span.change_return_span'));
-    // store payment details
-    saveFormDataToLocalStorage();
 }
 
 function isValidPosForm() {
@@ -2170,12 +2165,8 @@ function reset_pos_form(){
     //reset contact due
     $('.contact_due_text').find('span').text('');
     $('.contact_due_text').addClass('hide');
-
+    // $('.payment-amount-side').val(0)
     $(document).trigger('sell_form_reset');
-
-    // Set global_is_clear_local_storage to true to clear local storage
-    global_is_clear_local_storage = true;
-    saveFormDataToLocalStorage();
 }
 
 function set_default_customer() {
@@ -2253,10 +2244,8 @@ function set_location() {
 
     if ($('input#location_id').val()) {
         $('input#search_product')
-            .prop('disabled', false);
-        if (!$('#__is_mobile').length) {
-            $('input#search_product').focus();
-        }
+            .prop('disabled', false)
+            .focus();
     } else {
         $('input#search_product').prop('disabled', true);
     }
@@ -2337,6 +2326,7 @@ function calculate_discounted_unit_price(row) {
     var row_discounted_unit_price = this_unit_price;
     var row_discount_type = row.find('select.row_discount_type').val();
     var row_discount_amount = __read_number(row.find('input.row_discount_amount'));
+    console.log({row_discount_type, row_discount_amount, this_unit_price});
     if (row_discount_amount) {
         if (row_discount_type == 'fixed') {
             row_discounted_unit_price = this_unit_price - row_discount_amount;
@@ -2344,7 +2334,7 @@ function calculate_discounted_unit_price(row) {
             row_discounted_unit_price = __substract_percent(this_unit_price, row_discount_amount);
         }
     }
-
+    console.log({row_discounted_unit_price});
     return row_discounted_unit_price;
 }
 
@@ -2725,8 +2715,10 @@ $(document).on('change', '#recur_interval_type', function() {
 });
 
 function validate_discount_field() {
+    console.log('validate_discount_field');
     discount_element = $('#discount_amount_modal');
-    discount_type_element = $('#discount_type_modal');
+    discount_type_element = $('#discount_type_modal') ?? 'fixed';
+    console.log(discount_element.val(), discount_type_element.val());
 
     if ($('#add_sell_form').length || $('#edit_sell_form').length) {
         discount_element = $('#discount_amount');
@@ -2734,12 +2726,18 @@ function validate_discount_field() {
     }
     var max_value = parseFloat(discount_element.data('max-discount'));
     if (discount_element.val() != '' && !isNaN(max_value)) {
-        if (discount_type_element.val() == 'fixed') {
+        console.log(discount_element.val());
+        console.log(discount_type_element.val());
+        console.log({max_value});
+        if (discount_type_element.val() == 'fixed'
+         && get_subtotal() != 0
+        ) {
             var subtotal = get_subtotal();
+            console.log({subtotal});
             //get max discount amount
             max_value = __calculate_amount('percentage', max_value, subtotal)
         }
-
+        console.log({'Update': max_value});
         discount_element.rules('add', {
             'max-value': max_value,
             messages: {
@@ -3284,107 +3282,56 @@ $(document).on('change', '#res_waiter_id', function(e){
     }
 })
 
-// update serial number of product item
-function update_serial_no(){
-    $('.product_row').each(function (index) {
-        // Add the serial number to the first <td> of each row (index + 1 to start from 1)
-        if ($(this).find('td:first').hasClass('serial_no')) {
-            $(this).find('td:first').text(index + 1);
-        }
-    });
-}
-
-
-/**
- * Saves the serialized form data from #add_pos_sell_form into LocalStorage.
- */
-function saveFormDataToLocalStorage() {
-
-
-    // Check if global_is_clear_local_storage is true and reset it to false if so
-    if(global_is_clear_local_storage){
-        localStorage.setItem("pos_form_data_array", JSON.stringify([]));
-        global_is_clear_local_storage = false;
-        return false; // Exit the function early if global_is_clear_local_storage was true
+//Update payable amount
+$('button#posEditPayableAmountUpdate').click(function () {
+    console.log('posEditPayableAmountUpdate');
+    //if payable amount is not valid return false
+    if (!$("#total_payable_amount").valid()) {
+        return false;
     }
-
-    // var storedArrayData = JSON.parse(localStorage.getItem("pos_form_data_array"));
-
-    // console.log("All data afer clear:", storedArrayData);
-
-    let form = $('form#add_pos_sell_form'); // Select the form by ID
-    // Check if the form exists in the DOM
-    if (form.length === 0) {
-        console.error("Error: Form #add_pos_sell_form not found.");
-        return;
+    let total_payable_amount = $('#total_payable_amount').val()
+    //Update values
+    let payable_price_total = get_subtotal();
+    if (total_payable_amount > payable_price_total) {
+        return false;
     }
-    // Serialize form data into an array of objects: [{name: 'input_name', value: 'input_value'}, ...]
-    let formArray = form.serializeArray();
+    $('input#discount_type').val('fixed');
+    __write_number($('input#discount_amount'), payable_price_total - total_payable_amount);
 
-    // Find if "price_total" already exists in the array
-    let priceIndex = formArray.findIndex(item => item.name === "price_total");
-
-    if (priceIndex !== -1) {
-        // If exists, update the value
-        formArray[priceIndex].value = get_subtotal();
-    } else {
-        // If not exists, push new entry
-        formArray.push({ name: "price_total", value: get_subtotal() });
+    pos_total_row();
+});
+//Update payable amount
+$('#total_payable_amount').on('change', function () {
+    //if payable amount is not valid return false
+    if (!$("#total_payable_amount").valid()) {
+        return false;
     }
-
-    // Find if "order_tax" already exists in the array
-    let textIndex = formArray.findIndex(item => item.name === "order_tax");
-
-    if (priceIndex !== -1) {
-        // If exists, update the value
-        formArray[textIndex].value = $("#order_tax").text().trim();
-    } else {
-        // If not exists, push new entry
-        formArray.push({ name: "order_tax", value: $("#order_tax").text().trim()});
+    let total_payable_amount = $('#total_payable_amount').val()
+    //Update values
+    let payable_price_total = get_subtotal();
+    if (total_payable_amount > payable_price_total) {
+        return false;
     }
+    $('input#discount_type').val('fixed');
+    $('select#discount_type_modal').val('fixed');
+    __write_number($('input#discount_amount'), payable_price_total - total_payable_amount);
+    __write_number($('input#discount_amount_modal'), payable_price_total - total_payable_amount);
 
-    // Find if "shipping_charges_amount" already exists in the array
-    let shipping_charges_amount = formArray.findIndex(item => item.name === "shipping_charges_amount");
+    pos_total_row();
+});
 
-    if (priceIndex !== -1) {
-        // If exists, update the value
-        formArray[shipping_charges_amount].value = $("#shipping_charges_amount").text().trim();
-    } else {
-        // If not exists, push new entry
-        formArray.push({ name: "shipping_charges_amount", value: $("#shipping_charges_amount").text().trim()});
+// on search_product focuse, down key press will focuse on total_payable_amount input
+$(document).keydown(function (e) {
+    if (e.keyCode == 40 && $('#search_product').is(':focus')) {
+        $('#total_payable_amount').focus().select();
+        return false;
     }
-
-    // Find if "total_paying_input" already exists in the array
-    let total_paying_input = formArray.findIndex(item => item.name === "total_paying_input");
-    
-    if (priceIndex !== -1) {
-        // If exists, update the value
-        formArray[total_paying_input].value = $("#total_paying_input").val();
-    } else {
-        // If not exists, push new entry
-        formArray.push({ name: "total_paying_input", value: $("#total_paying_input").val()});
+    if (e.keyCode == 40 && $('#total_payable_amount').is(':focus')) {
+        $('.payment-amount').focus().select();
+        return false;
     }
-
-    // Find if "change_return" already exists in the array
-    let change_return = formArray.findIndex(item => item.name === "change_return");
-    if (priceIndex !== -1) {
-        // If exists, update the value
-        formArray[change_return].value = $("#change_return").val();
-    } else {
-        // If not exists, push new entry
-        formArray.push({ name: "change_return", value: $("#change_return").val()});
+    if (e.keyCode == 40 && $('.payment-amount').is(':focus')) {
+        $('#discount_amount_modal').focus().select();
+        return false;
     }
-     // Find if "in_balance_due" already exists in the array
-     let in_balance_due = formArray.findIndex(item => item.name === "in_balance_due");
-     if (priceIndex !== -1) {
-         // If exists, update the value
-         formArray[in_balance_due].value = $("#in_balance_due").val();
-     } else {
-         // If not exists, push new entry
-         formArray.push({ name: "in_balance_due", value: $("#in_balance_due").val()});
-     }
-    // Store serialized data in LocalStorage as a JSON string
-    localStorage.setItem("pos_form_data_array", JSON.stringify(formArray));
-
-    // console.log("Form data successfully saved to LocalStorage.");
-}
+});

@@ -1,3 +1,4 @@
+{{-- @dd($barcode_details) --}}
 <table align="center" style="border-spacing: {{$barcode_details->col_distance * 1}}in {{$barcode_details->row_distance * 1}}in; overflow: hidden !important;">
 @foreach($page_products as $page_product)
 
@@ -7,7 +8,7 @@
 		<!-- <columns column-count="{{$barcode_details->stickers_in_one_row}}" column-gap="{{$barcode_details->col_distance*1}}"> -->
 	@endif
 		<td align="center" valign="center">
-			<div style="overflow: hidden !important;display: flex; flex-wrap: wrap;align-content: center;width: {{$barcode_details->width * 1}}in; height: {{$barcode_details->height * 1}}in; justify-content: center;">
+			<div style="overflow: hidden !important;display: flex; flex-wrap: wrap;align-content: center;width: {{$barcode_details->width * 1}}in; height: {{$barcode_details->height * 1.2}}in; justify-content: center;">
 				
 
 				<div>
@@ -53,22 +54,10 @@
 							</span>
 						@endif
 					@endforeach
-					<br>
+					{{-- <br> --}}
 
 					{{-- Price --}}
-					@if(!empty($print['price']))
-					<span style="font-size: {{$print['price_size']}}px;">
-						@lang('lang_v1.price'):
-						<b>{{session('currency')['symbol'] ?? ''}}
-
-						
-						@if($print['price_type'] == 'inclusive')
-							{{@num_format($page_product->sell_price_inc_tax)}}
-						@else
-							{{@num_format($page_product->default_sell_price)}}
-						@endif</b>
-					</span>
-					@endif
+					
 					@if(!empty($print['exp_date']) && !empty($page_product->exp_date))
 						<br>
 						<span style="font-size: {{$print['exp_date_size']}}px">
@@ -87,11 +76,24 @@
 						</span>
 					@endif
 					{{-- Barcode --}}
-					<img style="max-width:90% !important;height: {{$barcode_details->height*0.24}}in !important; display: block;" src="data:image/png;base64,{{DNS1D::getBarcodePNG($page_product->sub_sku, $page_product->barcode_type, 3,90, array(0, 0, 0), false)}}">
+					<img style="max-width:90% !important;height: {{$barcode_details->height*0.24}}in !important; display: block;" src="data:image/png;base64,{{DNS1D::getBarcodePNG($page_product->sub_sku, $page_product->barcode_type, 1,30, array(0, 0, 0), false)}}">
 					
-					<span style="font-size: 10px !important">
+					<span style="font-size: 10px !important;display: block;">
 						{{$page_product->sub_sku}}
 					</span>
+					@if(!empty($print['price']))
+					<span style="font-size: {{$print['price_size']}}px;">
+						@lang('lang_v1.price'):
+						<b>{{session('currency')['symbol'] ?? ''}}
+
+						
+						@if($print['price_type'] == 'inclusive')
+							{{@num_format($page_product->sell_price_inc_tax)}}
+						@else
+							{{@num_format($page_product->default_sell_price)}}
+						@endif</b>
+					</span>
+					@endif
 				</div>
 			</div>
 		

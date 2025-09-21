@@ -409,8 +409,14 @@
     </div>
   </div>
   <div class="modal-footer">
+    <a href="{{ action([\App\Http\Controllers\SellReturnController::class, 'add'], [$sell->id]) }}" class=" tw-dw-btn tw-dw-btn-success tw-text-white"><i class="fas fa-undo" aria-hidden="true"></i> @lang("Sell Return")</a>
     @if($sell->type != 'sales_order')
     <a href="#" class="print-invoice tw-dw-btn tw-dw-btn-success tw-text-white" data-href="{{route('sell.printInvoice', [$sell->id])}}?package_slip=true"><i class="fas fa-file-alt" aria-hidden="true"></i> @lang("lang_v1.packing_slip")</a>
+    @endif
+    @if ($sell->is_direct_sale == 1)
+    <a href="{{ action([\App\Http\Controllers\SellController::class, 'edit'], [$sell->id]) }}" class="tw-dw-btn tw-dw-btn-success tw-text-white"><i class="fas fa-edit" aria-hidden="true"></i> @lang("Edit Sell")</a>
+    @else
+    <a href="{{ action([\App\Http\Controllers\SellPosController::class, 'edit'], [$sell->id]) }}" class="tw-dw-btn tw-dw-btn-warning tw-text-white"><i class="fas fa-edit" aria-hidden="true"></i> @lang("Edit Sell")</a>
     @endif
     @can('print_invoice')
       <a href="#" class="print-invoice tw-dw-btn tw-dw-btn-primary tw-text-white" data-href="{{route('sell.printInvoice', [$sell->id])}}"><i class="fa fa-print" aria-hidden="true"></i> @lang("lang_v1.print_invoice")</a>

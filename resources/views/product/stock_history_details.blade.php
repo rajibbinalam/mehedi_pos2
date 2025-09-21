@@ -136,7 +136,11 @@
 					@endif
 					<td>{{@format_datetime($history['date'])}}</td>
 					<td>
-						{{$history['ref_no']}}
+						@if ($history['type'] == 'sell')
+							<a href="#" data-href="{{ action([\App\Http\Controllers\SellController::class, 'show'], [$history['transaction_id']]) }}" class="btn-modal" data-container=".view_modal">{{$history['ref_no']}}</a>
+						@elseif($history['type'] == 'purchase')
+							<a href="#" data-href="{{ action([\App\Http\Controllers\PurchaseController::class, 'show'], [$history['transaction_id']]) }}" class="btn-modal" data-container=".view_modal">{{$history['ref_no']}}</a>
+						@endif
 
 						@if(!empty($history['additional_notes']))
 							@if(!empty($history['ref_no']))

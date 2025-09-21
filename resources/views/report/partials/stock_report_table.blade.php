@@ -14,6 +14,7 @@
             <th>@lang('lang_v1.variation')</th>
             <th>@lang('product.category')</th>
             <th>@lang('sale.location')</th>
+            {{-- <th>@lang('Default Purchase Price')</th> --}}
             <th>@lang('purchase.unit_selling_price')</th>
             <th>@lang('report.current_stock')</th>
             @can('view_product_stock_value')

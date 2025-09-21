@@ -566,6 +566,14 @@ class ProductController extends Controller
 
             return redirect('products')->with('status', $output);
         }
+        
+        if($request->get('store_type') == 'quick_add'){
+            $output = ['success' => true,
+                'msg' => __('messages.product_added_success'),
+                'product' => $product,
+            ];
+            return $output;
+        }
 
         if ($request->input('submit_type') == 'submit_n_add_opening_stock') {
             return redirect()->action([\App\Http\Controllers\OpeningStockController::class, 'add'],
@@ -1475,9 +1483,10 @@ class ProductController extends Controller
 
         $common_settings = session()->get('business.common_settings');
         $warranties = Warranty::forDropdown($business_id);
+        $product_types = $this->product_types();
 
         return view('product.partials.quick_add_product')
-                ->with(compact('categories', 'brands', 'units', 'taxes', 'barcode_types', 'default_profit_percent', 'tax_attributes', 'product_name', 'locations', 'product_for', 'enable_expiry', 'enable_lot', 'module_form_parts', 'business_locations', 'common_settings', 'warranties'));
+                ->with(compact('categories', 'brands', 'units', 'taxes', 'barcode_types', 'default_profit_percent', 'tax_attributes', 'product_name', 'locations', 'product_for', 'enable_expiry', 'enable_lot', 'module_form_parts', 'business_locations', 'common_settings', 'warranties', 'product_types'));
     }
 
     /**

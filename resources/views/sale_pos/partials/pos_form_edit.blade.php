@@ -180,8 +180,7 @@
 		<input type="hidden" name="sell_price_tax" id="sell_price_tax" value="{{$business_details->sell_price_tax}}">
 
 		<!-- Keeps count of product rows -->
-		<input type="hidden" id="product_row_count" 
-			value="{{count($sell_details)}}">
+		<input type="hidden" id="product_row_count" value="{{count($sell_details)}}">
 		@php
 			$hide_tax = '';
 			if( session()->get('business.enable_inline_tax') == 0){
@@ -206,6 +205,9 @@
 						@lang('sale.price_inc_tax')
 					</th>
 					<th class="text-center col-md-2">
+						@lang('Discount')
+					</th>
+					<th class="text-center col-md-2">
 						@lang('sale.subtotal')
 					</th>
 					<th class="text-center"><i class="fas fa-times" aria-hidden="true"></i></th>
@@ -214,14 +216,14 @@
 			<tbody>
 				@foreach($sell_details as $sell_line)
 
-				@include('sale_pos.product_row', 
-					['product' => $sell_line, 
-					'row_count' => $loop->index, 
-					'tax_dropdown' => $taxes, 
-					'sub_units' => !empty($sell_line->unit_details) ? $sell_line->unit_details : [],
-					'action' => 'edit'
-				])
-			@endforeach
+					@include('sale_pos.product_row', 
+						['product' => $sell_line, 
+						'row_count' => $loop->index, 
+						'tax_dropdown' => $taxes, 
+						'sub_units' => !empty($sell_line->unit_details) ? $sell_line->unit_details : [],
+						'action' => 'edit'
+					])
+				@endforeach
 			</tbody>
 		</table>
 	</div>

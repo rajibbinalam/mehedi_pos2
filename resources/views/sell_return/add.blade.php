@@ -158,6 +158,114 @@
 				</div>
 			</div>
 			<br>
+			{{-- @component('components.widget', ['class' => 'box-solid', 'title' => __('purchase.add_payment')])
+			<div class="well row">
+				<div class="col-md-6">
+					<div class="form-group">
+						{!! Form::label("prefer_payment_method" , __('lang_v1.prefer_payment_method') . ':') !!}
+						@show_tooltip(__('lang_v1.this_will_be_shown_in_pdf'))
+						<div class="input-group">
+							<span class="input-group-addon">
+								<i class="fas fa-money-bill-alt"></i>
+							</span>
+							{!! Form::select("prefer_payment_method", $payment_types, 'cash', ['class' => 'form-control','style' => 'width:100%;']); !!}
+						</div>
+					</div>
+				</div>
+				<div class="col-md-6">
+					<div class="form-group">
+						{!! Form::label("prefer_payment_account" , __('lang_v1.prefer_payment_account') . ':') !!}
+						@show_tooltip(__('lang_v1.this_will_be_shown_in_pdf'))
+						<div class="input-group">
+							<span class="input-group-addon">
+								<i class="fas fa-money-bill-alt"></i>
+							</span>
+							{!! Form::select("prefer_payment_account", $accounts, null, ['class' => 'form-control','style' => 'width:100%;']); !!}
+						</div>
+					</div>
+				</div>
+			</div>
+				<div class="payment_row" id="payment_rows_div">
+					<div class="row">
+						<div class="col-md-12 mb-12">
+							<strong>@lang('lang_v1.advance_balance'):</strong> <span id="advance_balance_text"></span>
+							{!! Form::hidden('advance_balance', null, ['id' => 'advance_balance', 'data-error-msg' => __('lang_v1.required_advance_balance_not_available')]); !!}
+						</div>
+					</div>
+					@include('sale_pos.partials.payment_row_form', ['row_index' => 0, 'show_date' => true, 'show_denomination' => true])
+                </div>
+                <div class="payment_row">
+					<div class="row">
+						<div class="col-md-12">
+			        		<hr>
+			        		<strong>
+			        			@lang('lang_v1.change_return'):
+			        		</strong>
+			        		<br/>
+			        		<span class="lead text-bold change_return_span">0</span>
+			        		{!! Form::hidden("change_return", $change_return['amount'], ['class' => 'form-control change_return input_number', 'required', 'id' => "change_return"]); !!}
+			        		<!-- <span class="lead text-bold total_quantity">0</span> -->
+			        		@if(!empty($change_return['id']))
+			            		<input type="hidden" name="change_return_id" 
+			            		value="{{$change_return['id']}}">
+			            	@endif
+						</div>
+					</div>
+					<div class="row hide payment_row" id="change_return_payment_data">
+						<div class="col-md-4">
+							<div class="form-group">
+								{!! Form::label("change_return_method" , __('lang_v1.change_return_payment_method') . ':*') !!}
+								<div class="input-group">
+									<span class="input-group-addon">
+										<i class="fas fa-money-bill-alt"></i>
+									</span>
+									@php
+										$_payment_method = empty($change_return['method']) && array_key_exists('cash', $payment_types) ? 'cash' : $change_return['method'];
+
+										$_payment_types = $payment_types;
+										if(isset($_payment_types['advance'])) {
+											unset($_payment_types['advance']);
+										}
+									@endphp
+									{!! Form::select("payment[change_return][method]", $_payment_types, $_payment_method, ['class' => 'form-control col-md-12 payment_types_dropdown', 'id' => 'change_return_method', 'style' => 'width:100%;']); !!}
+								</div>
+							</div>
+						</div>
+						@if(!empty($accounts))
+						<div class="col-md-4">
+							<div class="form-group">
+								{!! Form::label("change_return_account" , __('lang_v1.change_return_payment_account') . ':') !!}
+								<div class="input-group">
+									<span class="input-group-addon">
+										<i class="fas fa-money-bill-alt"></i>
+									</span>
+									{!! Form::select("payment[change_return][account_id]", $accounts, !empty($change_return['account_id']) ? $change_return['account_id'] : '' , ['class' => 'form-control select2', 'id' => 'change_return_account', 'style' => 'width:100%;']); !!}
+								</div>
+							</div>
+						</div>
+						@endif
+						@include('sale_pos.partials.payment_type_details', ['payment_line' => $change_return, 'row_index' => 'change_return'])
+					</div>
+					<hr>
+					<div class="row">
+						<div class="col-sm-12">
+							<div class="pull-right"><strong>@lang('lang_v1.balance'):</strong> <span class="balance_due">0.00</span></div>
+						</div>
+					</div>
+				</div>
+			@endcomponent --}}
+			<div class="col-sm-4">
+				<div class="form-group">
+					{!! Form::label('payment_method', __( 'Payment Method' ) . ':') !!}
+					{!! Form::select('payment_method', $payment_types, 'cash', ['class' => 'form-control payment_method']); !!}
+				</div>
+			</div>
+			<div class="col-sm-4">
+				<div class="form-group">
+					{!! Form::label('paid_amount', __( 'Paid Amount' ) . ':') !!}
+					{!! Form::text('paid_amount', null, ['class' => 'form-control input_number paid_amount', 'placeholder' => 'Paid Amount']); !!}
+				</div>
+			</div>
 			<div class="row">
 				<div class="col-sm-12">
 					<button type="submit" class="tw-dw-btn tw-dw-btn-primary tw-text-white pull-right">@lang('messages.save')</button>
@@ -212,6 +320,7 @@
 		$('span#total_return_discount').text(__currency_trans_from_en(discount, true));
 		$('span#total_return_tax').text(__currency_trans_from_en(total_tax, true));
 		$('span#net_return').text(__currency_trans_from_en(net_return_inc_tax, true));
+		$('#paid_amount').val(net_return_inc_tax > 0 ? net_return_inc_tax : 0);
 	}
 </script>
 @endsection

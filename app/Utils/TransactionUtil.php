@@ -1664,7 +1664,7 @@ class TransactionUtil extends Util
             } 
 
             if ($transaction->status == 'final') {
-                $output['qr_code_text'] = $qr_code_text;
+                $output['qr_code_text'] = $qr_code_text ?? null;
             }
         }
         //Module related information.

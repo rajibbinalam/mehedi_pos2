@@ -23,7 +23,7 @@
 							@if($is_discount_enabled)
 								(-):
 								@if($edit_discount)
-								<i class="fas fa-edit cursor-pointer" id="pos-edit-discount" title="@lang('sale.edit_discount')" aria-hidden="true" data-toggle="modal" data-target="#posEditDiscountModal"></i>
+								{{-- <i class="fas fa-edit cursor-pointer" id="pos-edit-discount" title="@lang('sale.edit_discount')" aria-hidden="true" data-toggle="modal" data-target="#posEditDiscountModal"></i> --}}
 								@endif
 							
 								<span class="tw-text-base md:tw-text-lg tw-font-semibold" id="total_discount">0</span>

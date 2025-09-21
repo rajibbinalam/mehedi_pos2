@@ -25,12 +25,12 @@
 		@endif
 
 		//shortcut for draft pay & checkout
-		@if(!empty($shortcuts["pos"]["pay_n_ckeckout"]) && ($pos_settings['disable_pay_checkout'] == 0))
-			Mousetrap.bind('{{$shortcuts["pos"]["pay_n_ckeckout"]}}', function(e) {
-				e.preventDefault();
-				$('#pos-finalize').trigger('click');
-			});
-		@endif
+		// @if(!empty($shortcuts["pos"]["pay_n_ckeckout"]) && ($pos_settings['disable_pay_checkout'] == 0))
+		// 	Mousetrap.bind('{{$shortcuts["pos"]["pay_n_ckeckout"]}}', function(e) {
+		// 		e.preventDefault();
+		// 		$('#pos-finalize').trigger('click');
+		// 	});
+		// @endif
 
 		//shortcut for edit discount
 		@if(!empty($shortcuts["pos"]["edit_discount"]) && ($pos_settings['disable_discount'] == 0))

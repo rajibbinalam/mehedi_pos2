@@ -3,7 +3,7 @@
 @endphp
 <div class="row">
     <div
-        class="pos-form-actions tw-rounded-tr-xl tw-rounded-tl-xl tw-shadow-[rgba(17,_17,_26,_0.1)_0px_0px_16px] tw-bg-white tw-cursor-pointer">
+        class="pos-form-actions tw-rounded-tr-xl tw-rounded-tl-xl tw-shadow-[rgba(17,_17,_26,_0.1)_0px_0px_16px] tw-bg-white tw-cursor-pointer" style="padding-top: 4px;padding-bottom: 7px;">
         <div
             class="tw-flex tw-items-center tw-justify-between tw-flex-col sm:tw-flex-row md:tw-flex-row lg:tw-flex-row xl:tw-flex-row tw-gap-2 tw-px-4 tw-py-0 tw-overflow-x-auto tw-w-full">
 
@@ -19,12 +19,12 @@
             </div>
 
             <div class="!tw-w-full md:!tw-w-none !tw-flex md:!tw-hidden !tw-flex-row !tw-items-center !tw-gap-3">
-                @if (!Gate::check('disable_pay_checkout') || auth()->user()->can('superadmin') || auth()->user()->can('admin'))
+                {{-- @if (!Gate::check('disable_pay_checkout') || auth()->user()->can('superadmin') || auth()->user()->can('admin'))
                     <button type="button"
                         class=" tw-flex tw-flex-row tw-items-center tw-justify-center tw-gap-1 tw-font-bold tw-text-white tw-cursor-pointer tw-text-xs md:tw-text-sm tw-bg-[#001F3E] tw-rounded-md tw-p-2 tw-w-[8.5rem] @if (!$is_mobile)  @endif no-print @if ($pos_settings['disable_pay_checkout'] != 0) hide @endif"
                         id="pos-finalize" title="@lang('lang_v1.tooltip_checkout_multi_pay')"><i class="fas fa-money-check-alt"
                             aria-hidden="true"></i> @lang('lang_v1.checkout_multi_pay') </button>
-                @endif
+                @endif --}}
 
                 @if (!Gate::check('disable_express_checkout') || auth()->user()->can('superadmin') || auth()->user()->can('admin'))
                     <button type="button"
@@ -88,12 +88,12 @@
                     </button>
                 @endif
 
-                @if (!Gate::check('disable_pay_checkout') || auth()->user()->can('superadmin') || auth()->user()->can('admin'))
+                {{-- @if (!Gate::check('disable_pay_checkout') || auth()->user()->can('superadmin') || auth()->user()->can('admin'))
                     <button type="button"
                         class="tw-hidden md:tw-flex md:tw-flex-row md:tw-items-center md:tw-justify-center md:tw-gap-1 tw-font-bold tw-text-white tw-cursor-pointer tw-text-xs md:tw-text-sm tw-bg-[#001F3E] tw-rounded-md tw-p-2 tw-w-[8.5rem] @if (!$is_mobile)  @endif no-print @if ($pos_settings['disable_pay_checkout'] != 0) hide @endif"
                         id="pos-finalize" title="@lang('lang_v1.tooltip_checkout_multi_pay')"><i class="fas fa-money-check-alt"
                             aria-hidden="true"></i> @lang('lang_v1.checkout_multi_pay') </button>
-                @endif
+                @endif --}}
 
                 @if (!Gate::check('disable_express_checkout') || auth()->user()->can('superadmin') || auth()->user()->can('admin'))
                     <button type="button"
@@ -124,8 +124,8 @@
                     <div class="pos-total md:tw-flex md:tw-items-center md:tw-gap-3 tw-hidden">
                         <div
                             class="tw-text-black tw-font-bold tw-text-base md:tw-text-2xl tw-flex tw-items-center tw-flex-col">
-                            <div>@lang('sale.total')</div>
-                            <div>@lang('lang_v1.payable'):</div>
+                            <h4 style="padding: 0; margin:0"><b>Total</b></h4>
+                            <h4 style="padding: 0; margin:0"><b>Payable:</b></h4>
                         </div>
                         <input type="hidden" name="final_total" id="final_total_input" value="0.00">
                         <span id="total_payable"
@@ -145,7 +145,7 @@
         </div>
     </div>
 </div>
-@if (isset($transaction))
+{{-- @if (isset($transaction))
     @include('sale_pos.partials.edit_discount_modal', [
         'sales_discount' => $transaction->discount_amount,
         'discount_type' => $transaction->discount_type,
@@ -161,7 +161,7 @@
         'rp_redeemed_amount' => 0,
         'max_available' => 0,
     ])
-@endif
+@endif --}}
 
 @if (isset($transaction))
     @include('sale_pos.partials.edit_order_tax_modal', ['selected_tax' => $transaction->tax_id])
