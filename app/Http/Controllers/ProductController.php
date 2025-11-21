@@ -334,6 +334,7 @@ class ProductController extends Controller
         $pos_module_data = $this->moduleUtil->getModuleData('get_filters_for_list_product_screen');
 
         $is_admin = $this->productUtil->is_admin(auth()->user());
+        $has_excel_export_permission = auth()->user()->can('view_export_buttons');
 
         return view('product.index')
             ->with(compact(
@@ -346,7 +347,8 @@ class ProductController extends Controller
                 'show_manufacturing_data',
                 'pos_module_data',
                 'is_woocommerce',
-                'is_admin'
+                'is_admin',
+                'has_excel_export_permission'
             ));
     }
 

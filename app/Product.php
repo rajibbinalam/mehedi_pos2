@@ -116,6 +116,14 @@ class Product extends Model
     {
         return $this->hasMany(\App\Variation::class);
     }
+    
+    /**
+     * Get the variations associated with the product.
+     */
+    public function variationLocationDetails()
+    {
+        return $this->hasMany(\App\VariationLocationDetails::class);
+    }
 
     /**
      * If product type is modifier get products associated with it.

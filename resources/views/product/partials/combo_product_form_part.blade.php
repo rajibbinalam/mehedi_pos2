@@ -95,6 +95,7 @@
 	            source: "/purchases/get_products?check_enable_stock=false",
 	            minLength: 2,
 	            response: function(event,ui) {
+					console.log('New ');
 	                if (ui.content.length == 1)
 	                {
 	                    ui.item = ui.content[0];
